@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prompt Evaluator</title>
+  <style>
+    :root {
+      --bg: #0d0d0f;
+      --surface: #16161a;
+      --border: #2a2a2f;
+      --text: #e8e8ec;
+      --muted: #666678;
+      --accent: #7b5ea7;
+      --green: #4caf72;
+      --yellow: #d4a840;
+      --red: #e05252;
+      --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
+      --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+      min-height: 100vh;
+      padding: 40px 24px;
+    }
+
+    .container { max-width: 860px; margin: 0 auto; }
+
+    header { margin-bottom: 36px; }
+    header h1 {
+      font-size: 17px;
+      font-weight: 500;
+      font-family: var(--mono);
+      letter-spacing: -0.3px;
+    }
+    header h1 span { color: var(--accent); }
+    header p { color: var(--muted); font-size: 13px; margin-top: 5px; }
+
+    .field { margin-bottom: 18px; }
+
+    label {
+      display: block;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.9px;
+      color: var(--muted);
+      margin-bottom: 7px;
+      font-family: var(--mono);
+    }
+    label .opt { color: #3a3a44; text-transform: none; letter-spacing: 0; font-size: 10px; margin-left: 6px; }
+
+    .info-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 1px solid var(--muted);
+      color: var(--muted);
+      font-size: 9px;
+      font-family: var(--sans);
+      font-style: italic;
+      font-weight: 600;
+      cursor: default;
+      margin-left: 7px;
+      vertical-align: middle;
+      position: relative;
+      letter-spacing: 0;
+      text-transform: none;
+      line-height: 1;
+    }
+    .info-icon:hover { border-color: var(--accent); color: var(--accent); }
+    .info-icon .tooltip {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e1e24;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 10px 12px;
+      width: 280px;
+      font-size: 12px;
+      font-family: var(--sans);
+      font-style: normal;
+      font-weight: 400;
+      color: var(--text);
+      line-height: 1.55;
+      text-transform: none;
+      letter-spacing: 0;
+      white-space: normal;
+      z-index: 10;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      pointer-events: none;
+    }
+    .info-icon .tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: var(--border);
+    }
+    .info-icon:hover .tooltip { display: block; }
+
+    textarea, input[type="number"], select {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 5px;
+      padding: 11px 13px;
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.6;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    textarea:focus, input:focus, select:focus { border-color: var(--accent); }
+    textarea.lg { min-height: 130px; }
+    textarea.sm { min-height: 72px; }
+
+    .row {
+      display: grid;
+      grid-template-columns: 110px 1fr;
+      gap: 14px;
+      align-items: start;
+    }
+
+    input[type="number"] { -moz-appearance: textfield; }
+
+    select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666678'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 30px;
+    }
+    select option { background: var(--surface); }
+
+    .actions { display: flex; gap: 9px; margin-top: 22px; }
+
+    button {
+      height: 38px;
+      padding: 0 18px;
+      border: none;
+      border-radius: 5px;
+      font-family: var(--mono);
+      font-size: 12px;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    button:active { transform: scale(0.98); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+
+    .status {
+      display: none;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 14px;
+    }
+    .status.on { display: flex; align-items: center; gap: 8px; }
+
+    .spinner {
+      width: 12px; height: 12px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-box {
+      display: none;
+      background: rgba(224,82,82,0.08);
+      border: 1px solid rgba(224,82,82,0.25);
+      border-radius: 5px;
+      padding: 12px 14px;
+      color: var(--red);
+      font-family: var(--mono);
+      font-size: 12px;
+      margin-top: 14px;
+      white-space: pre-wrap;
+    }
+    .error-box.on { display: block; }
+
+    .divider { height: 1px; background: var(--border); margin: 32px 0; }
+
+    #results { display: none; }
+
+    .scores { display: flex; gap: 2px; margin-bottom: 28px; }
+
+    .score-block {
+      flex: 1;
+      padding: 16px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+    .score-block:first-child { border-radius: 5px 0 0 5px; }
+    .score-block:last-child  { border-radius: 0 5px 5px 0; }
+
+    .score-block .slabel {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.9px;
+      color: var(--muted);
+      font-family: var(--mono);
+      margin-bottom: 6px;
+    }
+    .score-block .sval {
+      font-size: 26px;
+      font-family: var(--mono);
+      font-weight: 600;
+      line-height: 1;
+    }
+    .score-block .bar {
+      height: 2px;
+      background: var(--border);
+      border-radius: 2px;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+    .score-block .bar-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
+
+    .g { color: var(--green); }
+    .y { color: var(--yellow); }
+    .r { color: var(--red); }
+    .g-bar { background: var(--green); }
+    .y-bar { background: var(--yellow); }
+    .r-bar { background: var(--red); }
+
+    .delta {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 3px;
+      margin-top: 5px;
+    }
+    .d-pos { background: rgba(76,175,114,0.12); color: var(--green); }
+    .d-neg { background: rgba(224,82,82,0.12); color: var(--red); }
+
+    .sec { font-size: 10px; text-transform: uppercase; letter-spacing: 0.9px; color: var(--muted); font-family: var(--mono); margin-bottom: 13px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 26px; }
+    th {
+      text-align: left;
+      font-family: var(--mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      padding: 0 12px 9px;
+    }
+    th:first-child, td:first-child { padding-left: 0; }
+    td { padding: 9px 12px; border-top: 1px solid var(--border); vertical-align: top; line-height: 1.5; }
+    td:first-child { padding-left: 0; }
+    td.dname { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+    td.dscore { font-family: var(--mono); font-weight: 600; width: 48px; }
+
+    .lists { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 26px; }
+    .lg-group h4 { font-size: 10px; text-transform: uppercase; letter-spacing: 0.9px; font-family: var(--mono); color: var(--muted); margin-bottom: 9px; }
+    .lg-group ul { list-style: none; }
+    .lg-group ul li { font-size: 13px; line-height: 1.5; padding: 5px 0; border-bottom: 1px solid var(--border); }
+    .lg-group ul li:last-child { border-bottom: none; }
+    .lg-group ul li::before { margin-right: 7px; font-size: 11px; }
+    .lg-group.str li::before { content: '+'; color: var(--green); }
+    .lg-group.wkn li::before { content: '−'; color: var(--red); }
+    .lg-group.sug li::before { content: '→'; color: var(--accent); }
+
+    .improved {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 5px 5px 0;
+      padding: 15px 17px;
+    }
+    .improved pre {
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .copy-btn { height: 26px; padding: 0 11px; font-size: 11px; margin-bottom: 10px; }
+    .formula { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-bottom: 14px; }
+
+    @media (max-width: 600px) {
+      .lists { grid-template-columns: 1fr; }
+      .scores { flex-direction: column; }
+      .score-block { border-radius: 5px !important; }
+      .row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>prompt<span>.</span>eval</h1>
+      <p>Structural analysis + output testing + rewrite.</p>
+    </header>
+
+    <div class="field">
+      <label>Prompt <span style="color:var(--red)">*</span></label>
+      <textarea id="prompt" class="lg" placeholder="Paste the prompt you want to evaluate here..."></textarea>
+    </div>
+
+    <div class="field">
+      <label>Task Description <span class="opt">optional — auto-inferred from prompt if blank</span><span class="info-icon">i<span class="tooltip">Write this as if briefing a human reviewer who has never seen your prompt. They need to know what a <em>good</em> output looks like to grade it.<br><br>Vague: <span style="color:var(--muted)">"fastapi implementation"</span><br>Better: <span style="color:var(--text)">"Complete FastAPI endpoint with Pydantic models, async handler, error responses, and a working example — no pseudocode, no missing imports."</span></span></span></label>
+      <textarea id="task_description" class="sm" placeholder="e.g. Summarize customer emails into bullet points"></textarea>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Test Cases</label>
+        <input type="number" id="num_test_cases" value="3" min="1" max="5">
+      </div>
+      <div class="field">
+        <label>Output Format <span class="opt">optional — enables syntax validation</span></label>
+        <select id="output_format">
+          <option value="">Auto-detect</option>
+          <option value="python">Python</option>
+          <option value="json">JSON</option>
+          <option value="regex">Regex</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Baseline Prompt <span class="opt">optional — enables score delta comparison</span></label>
+      <textarea id="baseline_prompt" class="sm" placeholder="Previous version of the prompt (to compare against)..."></textarea>
+    </div>
+
+    <div class="actions">
+      <button class="btn-primary" id="btn-eval" onclick="runEvaluate()">Evaluate</button>
+      <button class="btn-secondary" id="btn-report" onclick="openReport()">Open HTML Report</button>
+    </div>
+
+    <div class="status" id="status"><span class="spinner"></span><span id="status-text">evaluating...</span></div>
+    <div class="error-box" id="error-box"></div>
+
+    <div id="results">
+      <div class="divider"></div>
+
+      <p class="formula" id="score-formula"></p>
+
+      <div class="scores">
+        <div class="score-block">
+          <div class="slabel">Overall</div>
+          <div class="sval" id="s-overall">—</div>
+          <div id="delta-badge"></div>
+          <div class="bar"><div class="bar-fill" id="b-overall"></div></div>
+        </div>
+        <div class="score-block">
+          <div class="slabel">Structural</div>
+          <div class="sval" id="s-structural">—</div>
+          <div class="bar"><div class="bar-fill" id="b-structural"></div></div>
+        </div>
+        <div class="score-block">
+          <div class="slabel">Output</div>
+          <div class="sval" id="s-output">—</div>
+          <div class="bar"><div class="bar-fill" id="b-output"></div></div>
+        </div>
+      </div>
+
+      <p class="sec">Structural Dimensions</p>
+      <table>
+        <thead>
+          <tr><th>Dimension</th><th>Score</th><th>Notes</th></tr>
+        </thead>
+        <tbody id="dim-table"></tbody>
+      </table>
+
+      <p class="sec">Analysis</p>
+      <div class="lists">
+        <div class="lg-group str"><h4>Strengths</h4><ul id="l-strengths"></ul></div>
+        <div class="lg-group wkn"><h4>Weaknesses</h4><ul id="l-weaknesses"></ul></div>
+        <div class="lg-group sug"><h4>Suggestions</h4><ul id="l-suggestions"></ul></div>
+      </div>
+
+      <p class="sec">Improved Prompt</p>
+      <button class="btn-secondary copy-btn" onclick="copyImproved()">Copy</button>
+      <div class="improved"><pre id="improved-prompt"></pre></div>
+    </div>
+  </div>
+
+  <script>
+    function payload() {
+      const p = document.getElementById('prompt').value.trim();
+      if (!p) throw new Error('Prompt is required.');
+      const o = { prompt: p, num_test_cases: Math.min(5, Math.max(1, parseInt(document.getElementById('num_test_cases').value) || 3)) };
+      const td = document.getElementById('task_description').value.trim();
+      const bp = document.getElementById('baseline_prompt').value.trim();
+      const of = document.getElementById('output_format').value;
+      if (td) o.task_description = td;
+      if (bp) o.baseline_prompt = bp;
+      if (of) o.output_format = of;
+      return o;
+    }
+
+    function loading(on, msg) {
+      const s = document.getElementById('status');
+      document.getElementById('btn-eval').disabled = on;
+      document.getElementById('btn-report').disabled = on;
+      document.getElementById('status-text').textContent = msg || 'evaluating...';
+      s.className = on ? 'status on' : 'status';
+    }
+
+    function err(msg) {
+      const el = document.getElementById('error-box');
+      el.textContent = msg;
+      el.className = msg ? 'error-box on' : 'error-box';
+    }
+
+    function cls(score) {
+      return score >= 8 ? 'g' : score >= 6 ? 'y' : 'r';
+    }
+
+    function setScore(sid, bid, val) {
+      const c = cls(val);
+      const el = document.getElementById(sid);
+      el.textContent = val.toFixed(1);
+      el.className = `sval ${c}`;
+      const bar = document.getElementById(bid);
+      bar.style.width = `${val * 10}%`;
+      bar.className = `bar-fill ${c}-bar`;
+    }
+
+    function render(data) {
+      setScore('s-overall', 'b-overall', data.overall_score);
+      setScore('s-structural', 'b-structural', data.structural_score);
+      setScore('s-output', 'b-output', data.output_score);
+      document.getElementById('score-formula').textContent =
+        `overall = 0.4 × structural (${data.structural_score.toFixed(1)}) + 0.6 × output (${data.output_score.toFixed(1)}) = ${data.overall_score.toFixed(1)}`;
+
+      const badge = document.getElementById('delta-badge');
+      if (data.score_delta != null) {
+        const sign = data.score_delta >= 0 ? '+' : '';
+        const cl = data.score_delta >= 0 ? 'd-pos' : 'd-neg';
+        badge.innerHTML = `<span class="delta ${cl}">${sign}${data.score_delta.toFixed(1)} vs baseline</span>`;
+      } else {
+        badge.innerHTML = '';
+      }
+
+      const tbody = document.getElementById('dim-table');
+      tbody.innerHTML = Object.entries(data.dimensions || {}).map(([dim, d]) =>
+        `<tr><td class="dname">${dim}</td><td class="dscore ${cls(d.score)}">${d.score}</td><td>${d.notes || ''}</td></tr>`
+      ).join('');
+
+      ['strengths', 'weaknesses', 'suggestions'].forEach(k => {
+        document.getElementById(`l-${k}`).innerHTML = (data[k] || []).map(s => `<li>${s}</li>`).join('');
+      });
+
+      document.getElementById('improved-prompt').textContent = data.improved_prompt || '';
+      document.getElementById('results').style.display = 'block';
+      document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    async function runEvaluate() {
+      err('');
+      let p;
+      try { p = payload(); } catch (e) { err(e.message); return; }
+      loading(true);
+      try {
+        const res = await fetch('/evaluate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(p),
+        });
+        const data = await res.json();
+        if (!res.ok) { err(`Error ${res.status}: ${data.detail || JSON.stringify(data)}`); return; }
+        render(data);
+      } catch (e) {
+        err(`Request failed: ${e.message}`);
+      } finally {
+        loading(false);
+      }
+    }
+
+    async function openReport() {
+      err('');
+      let p;
+      try { p = payload(); } catch (e) { err(e.message); return; }
+      loading(true, 'generating report...');
+      try {
+        const res = await fetch('/evaluate/report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(p),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          err(`Error ${res.status}: ${data.detail || res.statusText}`);
+          return;
+        }
+        const html = await res.text();
+        const url = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+        window.open(url, '_blank');
+      } catch (e) {
+        err(`Request failed: ${e.message}`);
+      } finally {
+        loading(false);
+      }
+    }
+
+    function copyImproved() {
+      const text = document.getElementById('improved-prompt').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = 'Copy', 2000);
+      });
+    }
+  </script>
+</body>
+</html>
