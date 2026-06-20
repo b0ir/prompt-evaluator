@@ -6,7 +6,7 @@ FastAPI service — structural analysis + output testing + prompt rewriting. Mod
 
 ```bash
 # Start server (browser UI at http://localhost:8000/)
-uvicorn main:app --reload
+uvicorn app.main:app --reload
 
 # Kill port conflict
 lsof -ti:8000 | xargs kill -9
@@ -27,13 +27,19 @@ See `.env.example` for all supported providers.
 ## Architecture
 
 ```
-main.py       — FastAPI app + routes (GET /, POST /evaluate, POST /evaluate/report, GET /health)
-evaluator.py  — AsyncEvaluator: 5-step async pipeline
-models.py     — Pydantic request/response models
-report.py     — HTML report renderer
-static/       — browser UI (served at GET /)
-cache/        — test case cache (sha256-keyed JSON files)
+app/
+  main.py       — FastAPI app + routes (GET /, POST /evaluate, POST /evaluate/report, GET /health)
+  evaluator.py  — AsyncEvaluator: 5-step async pipeline
+  models.py     — Pydantic request/response models
+  report.py     — HTML report renderer
+static/         — browser UI (served at GET /)
+cache/          — test case cache (sha256-keyed JSON files)
 ```
+
+## Conventions
+
+- Branch from `main`; open a PR to `main` (don't commit directly). Rebase on `main` before pushing if it moved.
+- Never commit `.env`, API keys, `cache/`, or logs — all gitignored. Keep it that way.
 
 ## Non-obvious behaviors
 
