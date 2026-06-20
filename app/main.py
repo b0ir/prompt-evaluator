@@ -6,9 +6,9 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 
-from evaluator import AsyncEvaluator
-from models import EvaluateRequest, EvaluateResponse
-from report import generate_report
+from app.evaluator import AsyncEvaluator
+from app.models import EvaluateRequest, EvaluateResponse
+from app.report import generate_report
 
 load_dotenv()
 
@@ -63,10 +63,12 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+_STATIC = Path(__file__).parent.parent / "static"
+
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
 async def ui():
-    return (Path(__file__).parent / "static" / "index.html").read_text()
+    return (_STATIC / "index.html").read_text()
 
 
 @app.get("/health")

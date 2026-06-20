@@ -22,7 +22,7 @@ class AsyncEvaluator:
         self.model = model
         self.api_base = api_base
         self.api_key = api_key
-        self.cache_dir = cache_dir or Path(__file__).parent / "cache"
+        self.cache_dir = cache_dir or Path(__file__).parent.parent / "cache"
         self._supports_response_format: bool | None = None
 
     def _base_kwargs(self) -> dict:

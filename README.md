@@ -18,27 +18,19 @@ Copy `.env.example` to `.env` and edit:
 cp .env.example .env
 ```
 
-Set `LLM_MODEL` to any [LiteLLM model string](https://docs.litellm.ai/docs/providers) and the matching API key. Example using OpenRouter (the default):
+Set `LLM_MODEL` to any [LiteLLM model string](https://docs.litellm.ai/docs/providers) and the matching API key for that provider. Examples:
+
 ```
-LLM_MODEL=openrouter/owl-alpha
-OPENROUTER_API_KEY=sk-or-...
+LLM_MODEL=openrouter/owl-alpha         OPENROUTER_API_KEY=sk-or-...
+LLM_MODEL=anthropic/claude-sonnet-4-5  ANTHROPIC_API_KEY=sk-ant-...
+LLM_MODEL=ollama/llama3                LLM_BASE_URL=http://localhost:11434  # no key needed
 ```
 
-To switch providers, set `LLM_MODEL` to any [LiteLLM model string](https://docs.litellm.ai/docs/providers) and the corresponding key:
-```
-LLM_MODEL=anthropic/claude-sonnet-4-5
-ANTHROPIC_API_KEY=sk-ant-...
-```
-
-For local models (Ollama, etc.) — no key needed:
-```
-LLM_MODEL=ollama/llama3
-LLM_BASE_URL=http://localhost:11434
-```
+See `.env.example` for all supported providers.
 
 **3. Start the server**
 ```bash
-uvicorn main:app --reload
+uvicorn app.main:app --reload
 ```
 
 Server runs at `http://localhost:8000`.
