@@ -1,5 +1,7 @@
 # Prompt Evaluator
 
+[![License: ELv2](https://img.shields.io/badge/License-Elastic_v2-blue.svg)](LICENSE)
+
 FastAPI service that evaluates any prompt and returns a score, dimension breakdown, improvement suggestions, and a rewritten improved version. Uses `openrouter/owl-alpha` via OpenRouter.
 
 ## Setup
@@ -233,3 +235,9 @@ curl http://localhost:8000/health
 - Always compare against a `baseline_prompt` — absolute scores alone are not meaningful, only the delta is.
 - The `improved_prompt` is ready to copy-paste. Submit it as your next iteration with the original as `baseline_prompt`.
 - If the prompt generates code/JSON/regex, set `output_format` explicitly or let it auto-detect — syntax validation catches broken outputs the model grader would miss.
+
+---
+
+## License
+
+[Elastic License 2.0](LICENSE) — free to use and modify; cannot be offered as a managed/hosted service to third parties.
