@@ -1,0 +1,39 @@
+[project]
+name = "prompt-evaluator"
+version = "0.1.0"
+description = "Evaluate any prompt: score, dimension breakdown, suggestions, and an improved rewrite. Model-agnostic via LiteLLM."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.29.0",
+    "litellm>=1.40.0",
+    "python-dotenv>=1.0.0",
+    "pydantic>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.4.0",
+    "mypy>=1.10.0",
+    "pip-audit>=2.7.0",
+]
+
+[project.urls]
+Repository = "https://github.com/b0ir/prompt-evaluator"
+Issues = "https://github.com/b0ir/prompt-evaluator/issues"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = false
+ignore_missing_imports = true
+check_untyped_defs = true
