@@ -1,12 +1,11 @@
-from statistics import mean
+from typing import Any
 
 
-def generate_report(eval_result: dict, prompt: str, task_description: str) -> str:
+def generate_report(eval_result: dict[str, Any], prompt: str, task_description: str) -> str:
     test_results = eval_result.get("_test_results", [])
     overall = eval_result.get("overall_score", 0)
     structural = eval_result.get("structural_score", 0)
     output_score = eval_result.get("output_score", 0)
-    baseline_score = eval_result.get("baseline_score")
     score_delta = eval_result.get("score_delta")
     dimensions = eval_result.get("dimensions", {})
     strengths = eval_result.get("strengths", [])
@@ -17,18 +16,17 @@ def generate_report(eval_result: dict, prompt: str, task_description: str) -> st
 
     total_tests = len(test_results)
     pass_rate = (
-        100 * len([r for r in test_results if r["score"] >= 7]) / total_tests
-        if total_tests else 0
+        100 * len([r for r in test_results if r["score"] >= 7]) / total_tests if total_tests else 0
     )
 
-    def score_class(s):
+    def score_class(s: float) -> str:
         if s >= 8:
             return "score-high"
         if s <= 5:
             return "score-low"
         return "score-medium"
 
-    def score_badge(s):
+    def score_badge(s: float) -> str:
         return f'<span class="score {score_class(s)}">{s:.1f}</span>'
 
     # Baseline delta badge
@@ -46,14 +44,18 @@ def generate_report(eval_result: dict, prompt: str, task_description: str) -> st
         criteria_html = "<br>• ".join(tc.get("solution_criteria", []))
         output_escaped = r.get("output", "").replace("<", "&lt;").replace(">", "&gt;")
         code_syntax = r.get("code_syntax_score")
-        syntax_note = f'<br><small style="color:#666">syntax: {code_syntax:.0f}/10</small>' if code_syntax is not None else ""
+        syntax_note = (
+            f'<br><small style="color:#666">syntax: {code_syntax:.0f}/10</small>'
+            if code_syntax is not None
+            else ""
+        )
         test_rows += f"""
         <tr>
-            <td>{tc.get("scenario","")}</td>
-            <td class="criteria">{'• ' + criteria_html if criteria_html else '—'}</td>
+            <td>{tc.get("scenario", "")}</td>
+            <td class="criteria">{"• " + criteria_html if criteria_html else "—"}</td>
             <td class="output"><pre>{output_escaped}</pre></td>
             <td class="score-col">{score_badge(r.get("score", 0))}{syntax_note}</td>
-            <td>{r.get("reasoning","")}</td>
+            <td>{r.get("reasoning", "")}</td>
         </tr>"""
 
     # Dimension rows
@@ -73,7 +75,11 @@ def generate_report(eval_result: dict, prompt: str, task_description: str) -> st
     suggestions_html = "".join(f"<li>{s}</li>" for s in suggestions)
     improved_escaped = improved_prompt.replace("<", "&lt;").replace(">", "&gt;")
     prompt_escaped = prompt.replace("<", "&lt;").replace(">", "&gt;")
-    cached_badge = '<span style="font-size:12px;color:#666;margin-left:8px">(dataset cached)</span>' if dataset_cached else ""
+    cached_badge = (
+        '<span style="font-size:12px;color:#666;margin-left:8px">(dataset cached)</span>'
+        if dataset_cached
+        else ""
+    )
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -122,7 +128,7 @@ def generate_report(eval_result: dict, prompt: str, task_description: str) -> st
       <div>Output Quality</div>
       <div class="stat-value">{score_badge(output_score)}</div>
     </div>
-    {'<div class="stat-box"><div>vs Baseline</div><div class="stat-value">' + delta_html + '</div></div>' if delta_html else ''}
+    {'<div class="stat-box"><div>vs Baseline</div><div class="stat-value">' + delta_html + "</div></div>" if delta_html else ""}
     <div class="stat-box">
       <div>Pass Rate (≥7)</div>
       <div class="stat-value">{pass_rate:.0f}%</div>

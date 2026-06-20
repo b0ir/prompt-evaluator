@@ -42,8 +42,7 @@ def _resolve_config() -> tuple[str, str | None, str | None]:
             provider_key = os.getenv(env_var)
             if not provider_key:
                 raise RuntimeError(
-                    f"No API key for provider '{provider}'. "
-                    f"Set {env_var} or LLM_API_KEY in .env"
+                    f"No API key for provider '{provider}'. Set {env_var} or LLM_API_KEY in .env"
                 )
 
     return model, api_base, api_key
@@ -88,9 +87,9 @@ async def evaluate(body: EvaluateRequest):
         )
         return result
     except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e))
+        raise HTTPException(status_code=422, detail=str(e)) from e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.post("/evaluate/report", response_class=HTMLResponse)
@@ -103,8 +102,10 @@ async def evaluate_report(body: EvaluateRequest):
             baseline_prompt=body.baseline_prompt,
             output_format=body.output_format,
         )
-        return generate_report(result, body.prompt, result.get("_task_description", body.task_description or ""))
+        return generate_report(
+            result, body.prompt, result.get("_task_description", body.task_description or "")
+        )
     except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e))
+        raise HTTPException(status_code=422, detail=str(e)) from e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
