@@ -2,7 +2,7 @@
 
 [![License: ELv2](https://img.shields.io/badge/License-Elastic_v2-blue.svg)](LICENSE)
 
-FastAPI service that evaluates any prompt and returns a score, dimension breakdown, improvement suggestions, and a rewritten improved version. Uses `openrouter/owl-alpha` via OpenRouter.
+FastAPI service that evaluates any prompt and returns a score, dimension breakdown, improvement suggestions, and a rewritten improved version. Model-agnostic via LiteLLM — works with any provider.
 
 ## Setup
 
@@ -18,8 +18,9 @@ Copy `.env.example` to `.env` and edit:
 cp .env.example .env
 ```
 
-The defaults use OpenRouter + `owl-alpha`. If that's your setup, just set your key:
+Set `LLM_MODEL` to any [LiteLLM model string](https://docs.litellm.ai/docs/providers) and the matching API key. Example using OpenRouter (the default):
 ```
+LLM_MODEL=openrouter/owl-alpha
 OPENROUTER_API_KEY=sk-or-...
 ```
 
