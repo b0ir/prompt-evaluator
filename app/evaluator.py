@@ -36,7 +36,9 @@ class AsyncEvaluator:
     # ─── JSON helper ───────────────────────────────────────────────────────────
 
     async def _json_call(self, messages: list[dict], system: str = "") -> dict:
-        full_system = system + "\n\nYou MUST respond with valid JSON only. No prose, no markdown fences."
+        full_system = (
+            system + "\n\nYou MUST respond with valid JSON only. No prose, no markdown fences."
+        )
         for attempt in range(2):
             kwargs: dict = dict(
                 model=self.model,
@@ -69,7 +71,9 @@ class AsyncEvaluator:
                     return json.loads(cleaned)
                 except json.JSONDecodeError:
                     if attempt == 1:
-                        raise ValueError(f"JSON parse failed after 2 attempts: {raw[:300]}")
+                        raise ValueError(
+                            f"JSON parse failed after 2 attempts: {raw[:300]}"
+                        ) from None
 
         raise RuntimeError("unreachable")
 
@@ -77,7 +81,9 @@ class AsyncEvaluator:
 
     def _detect_output_format(self, task_description: str) -> str | None:
         td = task_description.lower()
-        if any(w in td for w in ["python", "function", "class", "script", " def ", "code", "method"]):
+        if any(
+            w in td for w in ["python", "function", "class", "script", " def ", "code", "method"]
+        ):
             return "python"
         if any(w in td for w in ["json object", "json array", "json schema", "valid json", "yaml"]):
             return "json"
@@ -362,9 +368,7 @@ class AsyncEvaluator:
         except Exception as e:
             return f"[ERROR: scenario run failed — {e}]"
 
-    async def _grade_output(
-        self, task_description: str, test_case: dict, output: str
-    ) -> dict:
+    async def _grade_output(self, task_description: str, test_case: dict, output: str) -> dict:
         scenario = test_case["scenario"]
         criteria = test_case.get("solution_criteria", [])
         criteria_str = (
@@ -428,9 +432,7 @@ class AsyncEvaluator:
                 "score": 1,
             }
 
-    async def _synthesize(
-        self, prompt: str, structural_result: dict, grades: list[dict]
-    ) -> dict:
+    async def _synthesize(self, prompt: str, structural_result: dict, grades: list[dict]) -> dict:
         user_msg = dedent(f"""
             You have just evaluated a prompt. Synthesize the findings and rewrite the prompt.
 
@@ -513,24 +515,26 @@ class AsyncEvaluator:
             *[self._run_scenario(prompt, tc["scenario"]) for tc in test_cases],
             return_exceptions=True,
         )
-        outputs = [
-            o if not isinstance(o, Exception) else f"[ERROR: {o}]"
-            for o in raw_outputs
-        ]
+        outputs = [o if not isinstance(o, BaseException) else f"[ERROR: {o}]" for o in raw_outputs]
 
         raw_grades = await asyncio.gather(
-            *[self._grade_output(task_description, tc, o) for tc, o in zip(test_cases, outputs)],
+            *[
+                self._grade_output(task_description, tc, o)
+                for tc, o in zip(test_cases, outputs, strict=True)
+            ],
             return_exceptions=True,
         )
         grades = []
         for i, g in enumerate(raw_grades):
-            if isinstance(g, Exception):
-                grades.append({
-                    "strengths": [],
-                    "weaknesses": ["Grading failed"],
-                    "reasoning": str(g),
-                    "score": 1,
-                })
+            if isinstance(g, BaseException):
+                grades.append(
+                    {
+                        "strengths": [],
+                        "weaknesses": ["Grading failed"],
+                        "reasoning": str(g),
+                        "score": 1,
+                    }
+                )
             else:
                 # Merge code grader score when output format is known
                 code_score = self._code_grade(outputs[i], output_format)
@@ -593,17 +597,15 @@ class AsyncEvaluator:
 
         # Compute scores
         structural_score = float(structural_result.get("overall_structural_score", 0))
-        output_avg = (
-            sum(float(g.get("score", 1)) for g in grades) / len(grades) if grades else 0.0
-        )
+        output_avg = sum(float(g.get("score", 1)) for g in grades) / len(grades) if grades else 0.0
         overall = round(0.4 * structural_score + 0.6 * output_avg, 2)
 
         baseline_score = None
         score_delta = None
         if baseline_structural and baseline_grades:
             b_structural = float(baseline_structural.get("overall_structural_score", 0))
-            b_output_avg = (
-                sum(float(g.get("score", 1)) for g in baseline_grades) / len(baseline_grades)
+            b_output_avg = sum(float(g.get("score", 1)) for g in baseline_grades) / len(
+                baseline_grades
             )
             baseline_score = round(0.4 * b_structural + 0.6 * b_output_avg, 2)
             score_delta = round(overall - baseline_score, 2)
@@ -616,7 +618,7 @@ class AsyncEvaluator:
                 "reasoning": g.get("reasoning", ""),
                 "code_syntax_score": g.get("code_syntax_score"),
             }
-            for tc, out, g in zip(test_cases, outputs, grades)
+            for tc, out, g in zip(test_cases, outputs, grades, strict=True)
         ]
 
         return {
@@ -631,6 +633,6 @@ class AsyncEvaluator:
             "baseline_score": baseline_score,
             "score_delta": score_delta,
             "dataset_cached": was_cached,
-            "_task_description": task_description,   # resolved value (inferred or provided)
-            "_test_results": test_results,           # used by /evaluate/report; both stripped by Pydantic on /evaluate
+            "_task_description": task_description,  # resolved value (inferred or provided)
+            "_test_results": test_results,  # used by /evaluate/report; both stripped by Pydantic on /evaluate
         }
