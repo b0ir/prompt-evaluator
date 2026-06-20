@@ -36,6 +36,11 @@ static/         — browser UI (served at GET /)
 cache/          — test case cache (sha256-keyed JSON files)
 ```
 
+## Conventions
+
+- Branch from `main`; open a PR to `main` (don't commit directly). Rebase on `main` before pushing if it moved.
+- Never commit `.env`, API keys, `cache/`, or logs — all gitignored. Keep it that way.
+
 ## Non-obvious behaviors
 
 - **Dataset cache**: keyed by `sha256(task_description + num_test_cases)[:16]` → `cache/<hash>.json`. Delete file to regenerate.
