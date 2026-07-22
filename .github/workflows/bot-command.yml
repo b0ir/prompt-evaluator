@@ -25,6 +25,7 @@ jobs:
       # Immediate ack so the commenter knows the trigger fired — the Claude
       # step below can take several minutes, and a silent gap reads as "broken".
       - name: Acknowledge trigger
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
