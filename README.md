@@ -8,7 +8,7 @@ FastAPI service that evaluates any prompt and returns a score, dimension breakdo
 
 **1. Install dependencies**
 ```bash
-pip install -r requirements.txt
+pip install -e .
 ```
 
 **2. Configure your model and API key**

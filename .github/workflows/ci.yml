@@ -28,7 +28,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
-      - run: pip install -r requirements.txt mypy
+      - run: pip install -e ".[dev]"
       - run: mypy app/
 
   audit:
@@ -40,5 +40,6 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
-      - run: pip install pip-audit
-      - run: pip-audit -r requirements.txt
+      - run: pip install --upgrade pip setuptools
+      - run: pip install -e ".[dev]"
+      - run: pip-audit
