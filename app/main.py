@@ -31,7 +31,7 @@ _PROVIDER_KEY_VARS: dict[str, str] = {
 
 def _resolve_config() -> tuple[str, str | None, str | None]:
     """Returns (model, api_base, api_key). Raises if no key found for cloud providers."""
-    model = os.getenv("LLM_MODEL", "openrouter/owl-alpha")
+    model = os.getenv("LLM_MODEL", "openrouter/nvidia/nemotron-3-super-120b-a12b:free")
     api_base = os.getenv("LLM_BASE_URL") or None
     api_key = os.getenv("LLM_API_KEY") or None
 
