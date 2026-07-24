@@ -4,7 +4,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 
 from app.evaluator import AsyncEvaluator
 from app.models import EvaluateRequest, EvaluateResponse
@@ -68,6 +68,11 @@ _STATIC = Path(__file__).parent.parent / "static"
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
 async def ui():
     return (_STATIC / "index.html").read_text()
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return Response(status_code=204)
 
 
 @app.get("/health")
