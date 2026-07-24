@@ -40,5 +40,6 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
+      - run: pip install --upgrade pip setuptools
       - run: pip install -e ".[dev]"
       - run: pip-audit
