@@ -35,7 +35,9 @@ class AsyncEvaluator:
 
     # ─── JSON helper ───────────────────────────────────────────────────────────
 
-    async def _json_call(self, messages: list[dict], system: str = "") -> dict:
+    async def _json_call(
+        self, messages: list[dict], system: str = "", max_tokens: int = 2000
+    ) -> dict:
         full_system = (
             system + "\n\nYou MUST respond with valid JSON only. No prose, no markdown fences."
         )
@@ -44,7 +46,7 @@ class AsyncEvaluator:
                 model=self.model,
                 messages=[{"role": "system", "content": full_system}] + messages,
                 temperature=0.0 if attempt == 1 else 0.3,
-                max_tokens=2000,
+                max_tokens=max_tokens,
                 **self._base_kwargs(),
             )
             use_rf = self._supports_response_format is not False
@@ -500,6 +502,11 @@ class AsyncEvaluator:
                 "For Claude Code prompts, also enforce agentic scope discipline: scope boundaries, success conditions, and scope creep prevention. "
                 "Follow instructions exactly. Be concrete — name specific changes, not vague advice."
             ),
+            # Largest output of all _json_call sites (strengths + weaknesses +
+            # suggestions + a full rewritten prompt) — reasoning models can burn
+            # several thousand tokens on hidden chain-of-thought before this,
+            # so 2000 (the default) reliably truncates it to invalid JSON.
+            max_tokens=6000,
         )
 
     # ─── Internal: run + grade a prompt against all test cases ─────────────────
