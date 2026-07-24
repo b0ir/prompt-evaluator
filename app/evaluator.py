@@ -10,6 +10,10 @@ from textwrap import dedent
 import litellm
 from litellm.exceptions import BadRequestError, UnsupportedParamsError
 
+# litellm's cost calc re-resolves the provider on every call and fails
+# for openrouter/<vendor>/... models, printing this banner to stdout.
+litellm.suppress_debug_info = True
+
 
 class AsyncEvaluator:
     def __init__(
