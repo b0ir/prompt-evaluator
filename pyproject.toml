@@ -20,7 +20,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "ruff>=0.16.0",
-    "mypy>=2.1.0",
+    "mypy>=2.3.0",
     "pip-audit>=2.10.1",
 ]
 
