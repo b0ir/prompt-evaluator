@@ -1,6 +1,6 @@
 # prompt-evaluator
 
-FastAPI service — structural analysis + output testing + prompt rewriting. Model-agnostic via LiteLLM; defaults to `openrouter/owl-alpha`.
+FastAPI service — structural analysis + output testing + prompt rewriting. Model-agnostic via LiteLLM; defaults to `openrouter/nvidia/nemotron-3-super-120b-a12b:free`.
 
 ## Dev commands
 
@@ -18,7 +18,7 @@ curl http://localhost:8000/health
 ## Required env
 
 ```
-LLM_MODEL=openrouter/owl-alpha     # default; any LiteLLM model string works
+LLM_MODEL=openrouter/nvidia/nemotron-3-super-120b-a12b:free   # default; any LiteLLM model string works
 OPENROUTER_API_KEY=sk-or-...       # set the key for whichever provider LLM_MODEL uses
 ```
 
