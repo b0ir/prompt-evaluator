@@ -7,12 +7,18 @@ FastAPI service that evaluates any prompt and returns a score, dimension breakdo
 
 ## Setup
 
-**1. Install dependencies**
+**1. Clone the repo**
+```bash
+git clone https://github.com/b0ir/prompt-evaluator.git
+cd prompt-evaluator
+```
+
+**2. Install dependencies**
 ```bash
 pip install -e .
 ```
 
-**2. Configure your model and API key**
+**3. Configure your model and API key**
 
 Copy `.env.example` to `.env` and edit:
 ```bash
@@ -29,7 +35,7 @@ LLM_MODEL=ollama/llama3                LLM_BASE_URL=http://localhost:11434  # no
 
 See `.env.example` for all supported providers.
 
-**3. Start the server**
+**4. Start the server**
 ```bash
 uvicorn app.main:app --reload
 ```
