@@ -1,5 +1,6 @@
 # Prompt Evaluator
 
+[![CI](https://github.com/b0ir/prompt-evaluator/actions/workflows/ci.yml/badge.svg)](https://github.com/b0ir/prompt-evaluator/actions/workflows/ci.yml)
 [![License: ELv2](https://img.shields.io/badge/License-Elastic_v2-blue.svg)](LICENSE)
 
 FastAPI service that evaluates any prompt and returns a score, dimension breakdown, improvement suggestions, and a rewritten improved version. Model-agnostic via LiteLLM — works with any provider.
